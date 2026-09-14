@@ -112,6 +112,7 @@ public class UserService : IUserService
 
         existingUser.EmailNotificationsEnabled = user.EmailNotificationsEnabled;
         existingUser.InAppNotificationsEnabled = user.InAppNotificationsEnabled;
+        existingUser.AvailabilityStatus = user.AvailabilityStatus;
 
         await _context.SaveChangesAsync();
         return true;

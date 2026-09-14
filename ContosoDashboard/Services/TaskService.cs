@@ -67,20 +67,21 @@ public class TaskService : ITaskService
             .Include(t => t.AssignedUser)
             .Include(t => t.CreatedByUser)
             .Include(t => t.Project)
-            .ThenInclude(p => p.ProjectMembers)
+            .ThenInclude(p => p!.ProjectMembers)
             .Include(t => t.Comments)
             .ThenInclude(c => c.User)
             .FirstOrDefaultAsync(t => t.TaskId == taskId);
 
         if (task == null) return null;
 
-        // Authorization: User can only view tasks they are assigned to, created, or are part of the project
+        var isAdministrator = await _context.Users
+            .AnyAsync(u => u.UserId == requestingUserId && u.Role == UserRole.Administrator);
         var isAssignedUser = task.AssignedUserId == requestingUserId;
         var isCreator = task.CreatedByUserId == requestingUserId;
         var isProjectMember = task.Project?.ProjectMembers.Any(pm => pm.UserId == requestingUserId) ?? false;
         var isProjectManager = task.Project?.ProjectManagerId == requestingUserId;
 
-        if (!isAssignedUser && !isCreator && !isProjectMember && !isProjectManager)
+        if (!isAdministrator && !isAssignedUser && !isCreator && !isProjectMember && !isProjectManager)
         {
             return null; // User not authorized to view this task
         }
@@ -113,18 +114,19 @@ public class TaskService : ITaskService
     {
         var task = await _context.Tasks
             .Include(t => t.Project)
-            .ThenInclude(p => p.ProjectMembers)
+            .ThenInclude(p => p!.ProjectMembers)
             .FirstOrDefaultAsync(t => t.TaskId == taskId);
             
         if (task == null) return false;
 
-        // Authorization: Only assigned user, creator, project manager, or project members can update status
+        var isAdministrator = await _context.Users
+            .AnyAsync(u => u.UserId == requestingUserId && u.Role == UserRole.Administrator);
         var isAssignedUser = task.AssignedUserId == requestingUserId;
         var isCreator = task.CreatedByUserId == requestingUserId;
         var isProjectMember = task.Project?.ProjectMembers.Any(pm => pm.UserId == requestingUserId) ?? false;
         var isProjectManager = task.Project?.ProjectManagerId == requestingUserId;
 
-        if (!isAssignedUser && !isCreator && !isProjectMember && !isProjectManager)
+        if (!isAdministrator && !isAssignedUser && !isCreator && !isProjectMember && !isProjectManager)
         {
             return false; // User not authorized to update this task
         }
@@ -153,8 +155,21 @@ public class TaskService : ITaskService
 
     public async Task<bool> AddTaskCommentAsync(int taskId, int userId, string comment)
     {
-        var task = await _context.Tasks.FindAsync(taskId);
+        var task = await _context.Tasks
+            .Include(t => t.Project)
+            .ThenInclude(p => p!.ProjectMembers)
+            .FirstOrDefaultAsync(t => t.TaskId == taskId);
         if (task == null) return false;
+
+        var isAdministrator = await _context.Users
+            .AnyAsync(u => u.UserId == userId && u.Role == UserRole.Administrator);
+        var hasAccess = isAdministrator || task.AssignedUserId == userId || task.CreatedByUserId == userId ||
+            task.Project?.ProjectManagerId == userId ||
+            task.Project?.ProjectMembers.Any(pm => pm.UserId == userId) == true;
+        if (!hasAccess || string.IsNullOrWhiteSpace(comment) || comment.Length > 2000)
+        {
+            return false;
+        }
 
         var taskComment = new TaskComment
         {
@@ -187,18 +202,19 @@ public class TaskService : ITaskService
     {
         var task = await _context.Tasks
             .Include(t => t.Project)
-            .ThenInclude(p => p.ProjectMembers)
+            .ThenInclude(p => p!.ProjectMembers)
             .FirstOrDefaultAsync(t => t.TaskId == taskId);
 
         if (task == null) return new List<TaskComment>();
 
-        // Authorization: User can only view comments if they have access to the task
+        var isAdministrator = await _context.Users
+            .AnyAsync(u => u.UserId == requestingUserId && u.Role == UserRole.Administrator);
         var isAssignedUser = task.AssignedUserId == requestingUserId;
         var isCreator = task.CreatedByUserId == requestingUserId;
         var isProjectMember = task.Project?.ProjectMembers.Any(pm => pm.UserId == requestingUserId) ?? false;
         var isProjectManager = task.Project?.ProjectManagerId == requestingUserId;
 
-        if (!isAssignedUser && !isCreator && !isProjectMember && !isProjectManager)
+        if (!isAdministrator && !isAssignedUser && !isCreator && !isProjectMember && !isProjectManager)
         {
             return new List<TaskComment>(); // User not authorized
         }

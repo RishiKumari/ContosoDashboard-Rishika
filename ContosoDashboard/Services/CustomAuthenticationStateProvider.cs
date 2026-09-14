@@ -9,21 +9,30 @@ namespace ContosoDashboard.Services
     /// </summary>
     public class CustomAuthenticationStateProvider : RevalidatingServerAuthenticationStateProvider
     {
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+
         public CustomAuthenticationStateProvider(
             ILoggerFactory loggerFactory,
             IServiceScopeFactory serviceScopeFactory)
             : base(loggerFactory)
         {
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         protected override TimeSpan RevalidationInterval => TimeSpan.FromMinutes(30);
 
-        protected override Task<bool> ValidateAuthenticationStateAsync(
+        protected override async Task<bool> ValidateAuthenticationStateAsync(
             AuthenticationState authenticationState, CancellationToken cancellationToken)
         {
-            // For the mock authentication system, we'll accept the authentication state as-is
-            // In a production system, you would validate the user still exists and has valid permissions
-            return Task.FromResult(true);
+            var userIdValue = authenticationState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdValue, out var userId))
+            {
+                return false;
+            }
+
+            await using var scope = _serviceScopeFactory.CreateAsyncScope();
+            var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
+            return await userService.GetUserByIdAsync(userId) is not null;
         }
     }
 }

@@ -93,7 +93,7 @@
                             <td>
                                 <select class="form-select form-select-sm" 
                                         value="@task.Status" 
-                                        @onchange="@(e => UpdateTaskStatus(task.TaskId, Enum.Parse<Models.TaskStatus>(e.Value?.ToString() ?? "NotStarted")))">
+                                        @onchange="@(e => UpdateTaskStatusFromInput(task.TaskId, e.Value?.ToString()))">
                                     <option value="@Models.TaskStatus.NotStarted">Not Started</option>
                                     <option value="@Models.TaskStatus.InProgress">In Progress</option>
                                     <option value="@Models.TaskStatus.Completed">Completed</option>
@@ -177,6 +177,14 @@
         {
             await TaskService.UpdateTaskStatusAsync(taskId, currentUserId, newStatus);
             await LoadTasks();
+        }
+    }
+
+    private async Task UpdateTaskStatusFromInput(int taskId, string? value)
+    {
+        if (Enum.TryParse<Models.TaskStatus>(value, out var status))
+        {
+            await UpdateTaskStatus(taskId, status);
         }
     }
 

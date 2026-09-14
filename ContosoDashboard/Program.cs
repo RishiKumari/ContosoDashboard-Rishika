@@ -61,6 +61,26 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
         context.Database.EnsureCreated(); // For development - use migrations in production
+        context.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS Documents (
+                DocumentId INTEGER NOT NULL CONSTRAINT PK_Documents PRIMARY KEY AUTOINCREMENT,
+                Title TEXT NOT NULL,
+                Description TEXT NULL,
+                Category TEXT NOT NULL,
+                ProjectId INTEGER NULL,
+                UploadedByUserId INTEGER NOT NULL,
+                FileName TEXT NOT NULL,
+                FileType TEXT NOT NULL,
+                FileSizeBytes INTEGER NOT NULL,
+                FilePath TEXT NOT NULL,
+                CreatedDate TEXT NOT NULL,
+                UpdatedDate TEXT NULL,
+                CONSTRAINT FK_Documents_Projects_ProjectId FOREIGN KEY (ProjectId) REFERENCES Projects (ProjectId) ON DELETE SET NULL,
+                CONSTRAINT FK_Documents_Users_UploadedByUserId FOREIGN KEY (UploadedByUserId) REFERENCES Users (UserId) ON DELETE RESTRICT
+            );
+            CREATE INDEX IF NOT EXISTS IX_Documents_ProjectId ON Documents (ProjectId);
+            CREATE INDEX IF NOT EXISTS IX_Documents_UploadedByUserId ON Documents (UploadedByUserId);
+        ");
     }
     catch (Exception ex)
     {

@@ -9,9 +9,9 @@
 
 **Purpose**: Confirm the project and environment are ready for secure dashboard work.
 
-- [ ] T001 Confirm the .NET 10 and SQLite baseline is applied in ContosoDashboard/ContosoDashboard.csproj and ContosoDashboard/appsettings.json
-- [ ] T002 [P] Verify the SQLite database configuration and startup wiring in ContosoDashboard/Program.cs
-- [ ] T003 [P] Validate the current model and service structure in ContosoDashboard/Data/ApplicationDbContext.cs, ContosoDashboard/Models/, and ContosoDashboard/Services/
+- [X] T001 Confirm the .NET 10 and SQLite baseline is applied in ContosoDashboard/ContosoDashboard.csproj and ContosoDashboard/appsettings.json
+- [X] T002 [P] Verify the SQLite database configuration and startup wiring in ContosoDashboard/Program.cs
+- [X] T003 [P] Validate the current model and service structure in ContosoDashboard/Data/ApplicationDbContext.cs, ContosoDashboard/Models/, and ContosoDashboard/Services/
 
 ---
 
@@ -19,12 +19,12 @@
 
 **Purpose**: Establish the core authorization and data-access foundation that all stories depend on.
 
-- [ ] T004 Ensure the database context includes user, project, task, notification, and membership relationships in ContosoDashboard/Data/ApplicationDbContext.cs
-- [ ] T005 [P] Configure authentication and role policies in ContosoDashboard/Program.cs for employee, team lead, project manager, and administrator access
-- [ ] T006 [P] Register scoped application services and dependency wiring in ContosoDashboard/Program.cs
-- [ ] T007 Implement shared authorization checks for project and task access in ContosoDashboard/Services/ProjectService.cs and ContosoDashboard/Services/TaskService.cs
-- [ ] T008 [P] Harden unauthenticated navigation flow and redirect handling in ContosoDashboard/Shared/RedirectToLogin.razor and ContosoDashboard/Pages/Login.cshtml
-- [ ] T009 Run the baseline build and confirm the project compiles before user story work begins
+- [X] T004 Ensure the database context includes user, project, task, notification, and membership relationships in ContosoDashboard/Data/ApplicationDbContext.cs
+- [X] T005 [P] Configure authentication and role policies in ContosoDashboard/Program.cs for employee, team lead, project manager, and administrator access
+- [X] T006 [P] Register scoped application services and dependency wiring in ContosoDashboard/Program.cs
+- [X] T007 Implement shared authorization checks for project and task access in ContosoDashboard/Services/ProjectService.cs and ContosoDashboard/Services/TaskService.cs
+- [X] T008 [P] Harden unauthenticated navigation flow and redirect handling in ContosoDashboard/Shared/RedirectToLogin.razor and ContosoDashboard/Pages/Login.cshtml
+- [X] T009 Run the baseline build and confirm the project compiles before user story work begins
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel.
 
@@ -38,11 +38,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] Update the dashboard summary and current-user lookup in ContosoDashboard/Pages/Index.razor
-- [ ] T011 [US1] Validate the dashboard summary data source and notification data in ContosoDashboard/Services/DashboardService.cs and ContosoDashboard/Services/NotificationService.cs
-- [ ] T012 [P] [US1] Confirm the login page and authentication state provider support the seeded user model in ContosoDashboard/Pages/Login.cshtml and ContosoDashboard/Services/CustomAuthenticationStateProvider.cs
-- [ ] T013 [US1] Add access checks and redirect behavior for unauthenticated users in ContosoDashboard/Program.cs and ContosoDashboard/Shared/RedirectToLogin.razor
-- [ ] T014 [US1] Verify the dashboard loads only the current user’s data and blocks attempts to view unrelated content
+- [X] T010 [US1] Update the dashboard summary and current-user lookup in ContosoDashboard/Pages/Index.razor
+- [X] T011 [US1] Validate the dashboard summary data source and notification data in ContosoDashboard/Services/DashboardService.cs and ContosoDashboard/Services/NotificationService.cs
+- [X] T012 [P] [US1] Confirm the login page and authentication state provider support the seeded user model in ContosoDashboard/Pages/Login.cshtml and ContosoDashboard/Services/CustomAuthenticationStateProvider.cs
+- [X] T013 [US1] Add access checks and redirect behavior for unauthenticated users in ContosoDashboard/Program.cs and ContosoDashboard/Shared/RedirectToLogin.razor
+- [X] T014 [US1] Verify the dashboard loads only the current user’s data and blocks attempts to view unrelated content
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently.
 
@@ -56,11 +56,11 @@
 
 ### Implementation for User Story 2
 
-- [ ] T015 [US2] Harden project retrieval and authorization in ContosoDashboard/Services/ProjectService.cs for manager, member, and unauthorized access cases
-- [ ] T016 [P] [US2] Update ContosoDashboard/Pages/Projects.razor to display only authorized project data and role-aware metadata
-- [ ] T017 [US2] Update ContosoDashboard/Pages/ProjectDetails.razor to deny direct access to unauthorized project routes and show only allowed project details
-- [ ] T018 [US2] Review ContosoDashboard/Models/Project.cs and ContosoDashboard/Models/ProjectMember.cs to confirm the membership rules support role-based visibility
-- [ ] T019 [US2] Validate manager/team access boundaries and unauthorized route protection with a smoke test
+- [X] T015 [US2] Harden project retrieval and authorization in ContosoDashboard/Services/ProjectService.cs for manager, member, and unauthorized access cases
+- [X] T016 [P] [US2] Update ContosoDashboard/Pages/Projects.razor to display only authorized project data and role-aware metadata
+- [X] T017 [US2] Update ContosoDashboard/Pages/ProjectDetails.razor to deny direct access to unauthorized project routes and show only allowed project details
+- [X] T018 [US2] Review ContosoDashboard/Models/Project.cs and ContosoDashboard/Models/ProjectMember.cs to confirm the membership rules support role-based visibility
+- [X] T019 [US2] Validate manager/team access boundaries and unauthorized route protection with a smoke test
 
 **Checkpoint**: At this point, User Stories 1 and 2 should both work independently.
 
@@ -74,11 +74,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T020 [US3] Restrict task retrieval and updates to the current user’s scope in ContosoDashboard/Services/TaskService.cs
-- [ ] T021 [P] [US3] Update ContosoDashboard/Pages/Tasks.razor to filter and update only authorized tasks and statuses
-- [ ] T022 [US3] Review ContosoDashboard/Models/TaskItem.cs and related task service logic to confirm due date, status, and project associations remain security-safe
-- [ ] T023 [US3] Add safe task access checks for direct access and unauthorized updates before saving task changes
-- [ ] T024 [US3] Validate a user cannot modify or view another user’s task data through direct action or route tampering
+- [X] T020 [US3] Restrict task retrieval and updates to the current user’s scope in ContosoDashboard/Services/TaskService.cs
+- [X] T021 [P] [US3] Update ContosoDashboard/Pages/Tasks.razor to filter and update only authorized tasks and statuses
+- [X] T022 [US3] Review ContosoDashboard/Models/TaskItem.cs and related task service logic to confirm due date, status, and project associations remain security-safe
+- [X] T023 [US3] Add safe task access checks for direct access and unauthorized updates before saving task changes
+- [X] T024 [US3] Validate a user cannot modify or view another user’s task data through direct action or route tampering
 
 **Checkpoint**: User Story 3 should be independently functional and safe.
 
@@ -92,10 +92,10 @@
 
 ### Implementation for User Story 4
 
-- [ ] T025 [US4] Apply admin and elevated-role checks to the user management and access model in ContosoDashboard/Services/UserService.cs and ContosoDashboard/Program.cs
-- [ ] T026 [P] [US4] Update team and profile surface area in ContosoDashboard/Pages/Team.razor and ContosoDashboard/Pages/Profile.razor to respect access roles and display only authorized data
-- [ ] T027 [US4] Confirm administrator-only routes and service calls fail cleanly for non-privileged users
-- [ ] T028 [US4] Run a manager/admin access smoke test to confirm the security boundary remains consistent across screens
+- [X] T025 [US4] Apply admin and elevated-role checks to the user management and access model in ContosoDashboard/Services/UserService.cs and ContosoDashboard/Program.cs
+- [X] T026 [P] [US4] Update team and profile surface area in ContosoDashboard/Pages/Team.razor and ContosoDashboard/Pages/Profile.razor to respect access roles and display only authorized data
+- [X] T027 [US4] Confirm administrator-only routes and service calls fail cleanly for non-privileged users
+- [X] T028 [US4] Run a manager/admin access smoke test to confirm the security boundary remains consistent across screens
 
 **Checkpoint**: All user stories should now be independently functional.
 
@@ -105,10 +105,10 @@
 
 **Purpose**: Finish the hardening and validation work that affects the whole feature.
 
-- [ ] T029 [P] Review and tighten logging, failure messages, and error handling across ContosoDashboard/Program.cs, ContosoDashboard/Services/, and ContosoDashboard/Pages/
-- [ ] T030 [P] Validate the secure dashboard quickstart scenarios from specs/001-secure-dashboard/quickstart.md
-- [ ] T031 Review the authorization contract in specs/001-secure-dashboard/contracts/authorization-contract.md and confirm all major access paths align with it
-- [ ] T032 Security hardening pass across service-layer enforcement and route-level access checks
+- [X] T029 [P] Review and tighten logging, failure messages, and error handling across ContosoDashboard/Program.cs, ContosoDashboard/Services/, and ContosoDashboard/Pages/
+- [X] T030 [P] Validate the secure dashboard quickstart scenarios from specs/001-secure-dashboard/quickstart.md
+- [X] T031 Review the authorization contract in specs/001-secure-dashboard/contracts/authorization-contract.md and confirm all major access paths align with it
+- [X] T032 Security hardening pass across service-layer enforcement and route-level access checks
 
 ---
 

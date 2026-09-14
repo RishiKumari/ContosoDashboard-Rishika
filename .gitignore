@@ -61,6 +61,14 @@ BenchmarkDotNet.Artifacts/
 project.lock.json
 project.fragment.lock.json
 artifacts/
+*.db
+*.db-shm
+*.db-wal
+.vscode/
+.idea/
+.env*
+.DS_Store
+Thumbs.db
 
 # StyleCop
 StyleCopReport.xml

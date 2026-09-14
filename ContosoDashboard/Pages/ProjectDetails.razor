@@ -11,7 +11,14 @@
 <PageTitle>Project Details - ContosoDashboard</PageTitle>
 
 <div class="container-fluid">
-    @if (project == null)
+    @if (accessDenied)
+    {
+        <div class="alert alert-danger" role="alert">
+            You do not have permission to view this project.
+        </div>
+        <a class="btn btn-primary" href="/projects">Return to My Projects</a>
+    }
+    else if (project == null)
     {
         <p><em>Loading...</em></p>
     }
@@ -114,7 +121,7 @@
                                     <tbody>
                                         @foreach (var task in project.Tasks.OrderBy(t => t.DueDate))
                                         {
-                                            <tr class="@(task.DueDate.HasValue && task.DueDate < DateTime.Today && task.Status != Models.TaskStatus.Completed ? "table-danger" : "")">">
+                                            <tr class="@(task.DueDate.HasValue && task.DueDate < DateTime.Today && task.Status != Models.TaskStatus.Completed ? "table-danger" : "")">
                                                 <td>
                                                     <strong>@task.Title</strong>
                                                     @if (!string.IsNullOrEmpty(task.Description))
@@ -238,6 +245,7 @@
 
     private Project? project;
     private int currentUserId = 0;
+    private bool accessDenied;
 
     protected override async Task OnInitializedAsync()
     {
@@ -257,7 +265,7 @@
         
         if (project == null)
         {
-            NavigationManager.NavigateTo("/projects");
+            accessDenied = true;
         }
     }
 

@@ -1,0 +1,282 @@
+@page "/documents"
+@attribute [Authorize]
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Forms
+@using ContosoDashboard.Models
+@using ContosoDashboard.Services
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IDocumentService DocumentService
+@inject IProjectService ProjectService
+
+<PageTitle>My Documents - ContosoDashboard</PageTitle>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>My Documents</h1>
+            <p class="text-muted mb-0">Upload and organize work documents securely.</p>
+        </div>
+        <button class="btn btn-primary" type="button" @onclick="ToggleUploadForm">
+            <i class="bi bi-upload"></i> @(showUploadForm ? "Close Upload" : "Upload Document")
+        </button>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="alert alert-danger" role="alert">@errorMessage</div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(successMessage))
+    {
+        <div class="alert alert-success" role="alert">@successMessage</div>
+    }
+
+    @if (showUploadForm)
+    {
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="h4">Upload document</h2>
+                <EditForm EditContext="uploadEditContext" OnValidSubmit="UploadDocumentAsync">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="document-title">Title</label>
+                            <InputText id="document-title" class="form-control" @bind-Value="title" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="document-category">Category</label>
+                            <InputSelect id="document-category" class="form-select" @bind-Value="category">
+                                <option value="">Select a category</option>
+                                @foreach (var option in categories)
+                                {
+                                    <option value="@option">@option</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="document-project">Project</label>
+                            <InputSelect id="document-project" class="form-select" @bind-Value="projectIdValue">
+                                <option value="">Personal document</option>
+                                @foreach (var project in projects)
+                                {
+                                    <option value="@project.ProjectId">@project.Name</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="document-file">File</label>
+                            <InputFile id="document-file" OnChange="SelectFile" />
+                            <small class="form-text text-muted">PDF, Office, text, JPEG, or PNG. Maximum 25 MB.</small>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="document-description">Description</label>
+                            <InputTextArea id="document-description" class="form-control" @bind-Value="description" rows="3" />
+                        </div>
+                        <div class="col-12">
+                            <button class="btn btn-primary" type="submit" disabled="@isUploading">
+                                @if (isUploading)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    <span> Uploading...</span>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-cloud-arrow-up"></i>
+                                    <span> Upload</span>
+                                }
+                            </button>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    }
+
+    @if (isLoading)
+    {
+        <p><em>Loading documents...</em></p>
+    }
+    else if (documents.Count == 0)
+    {
+        <div class="alert alert-info">You have not uploaded any documents yet.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>File</th>
+                        <th>Size</th>
+                        <th>Uploaded</th>
+                        <th>Project</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var document in documents)
+                    {
+                        <tr>
+                            <td><strong>@document.Title</strong><br /><small class="text-muted">@document.Description</small></td>
+                            <td>@document.Category</td>
+                            <td>@document.FileName<br /><small class="text-muted">@document.FileType</small></td>
+                            <td>@FormatFileSize(document.FileSizeBytes)</td>
+                            <td>@document.CreatedDate.ToLocalTime().ToString("MMM dd, yyyy")</td>
+                            <td>@(document.Project?.Name ?? "Personal")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private const long MaxFileSizeBytes = 25 * 1024 * 1024;
+    private static readonly string[] categories =
+    [
+        "Project Documents", "Team Resources", "Personal Files", "Reports", "Presentations", "Other"
+    ];
+    private static readonly HashSet<string> allowedExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".jpg", ".jpeg", ".png"
+    };
+
+    private List<Document> documents = new();
+    private List<Project> projects = new();
+    private IBrowserFile? selectedFile;
+    private string title = string.Empty;
+    private string description = string.Empty;
+    private string category = string.Empty;
+    private string projectIdValue = string.Empty;
+    private string? errorMessage;
+    private string? successMessage;
+    private bool isLoading = true;
+    private bool isUploading;
+    private bool showUploadForm;
+    private int currentUserId;
+    private readonly EditContext uploadEditContext = new(new object());
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var claim = authState.User.FindFirst(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(claim?.Value, out currentUserId))
+            {
+                errorMessage = "Your session could not be identified. Please sign in again.";
+                return;
+            }
+
+            projects = await ProjectService.GetUserProjectsAsync(currentUserId);
+            documents = await DocumentService.GetUserDocumentsAsync(currentUserId);
+        }
+        catch (Exception)
+        {
+            errorMessage = "Documents could not be loaded. Refresh the page and try again.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ToggleUploadForm()
+    {
+        showUploadForm = !showUploadForm;
+        errorMessage = null;
+        successMessage = null;
+    }
+
+    private void SelectFile(InputFileChangeEventArgs args)
+    {
+        selectedFile = args.File;
+        errorMessage = null;
+    }
+
+    private async Task UploadDocumentAsync()
+    {
+        errorMessage = null;
+        successMessage = null;
+
+        if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(category))
+        {
+            errorMessage = "Title and category are required.";
+            return;
+        }
+
+        if (selectedFile == null || selectedFile.Size == 0)
+        {
+            errorMessage = "Please select a file.";
+            return;
+        }
+
+        if (selectedFile.Size > MaxFileSizeBytes)
+        {
+            errorMessage = "The selected file exceeds the 25 MB size limit.";
+            return;
+        }
+
+        if (!allowedExtensions.Contains(Path.GetExtension(selectedFile.Name)))
+        {
+            errorMessage = "Unsupported file type. Select a PDF, Office, text, JPEG, or PNG file.";
+            return;
+        }
+
+        isUploading = true;
+        try
+        {
+            await using var input = selectedFile.OpenReadStream(MaxFileSizeBytes);
+            await using var memory = new MemoryStream();
+            await input.CopyToAsync(memory);
+            memory.Position = 0;
+
+            int? projectId = int.TryParse(projectIdValue, out var parsedProjectId) ? parsedProjectId : null;
+            await DocumentService.UploadDocumentAsync(
+                currentUserId,
+                title.Trim(),
+                string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
+                category,
+                projectId,
+                memory,
+                selectedFile.Name,
+                selectedFile.ContentType);
+
+            documents = await DocumentService.GetUserDocumentsAsync(currentUserId);
+            title = string.Empty;
+            description = string.Empty;
+            category = string.Empty;
+            projectIdValue = string.Empty;
+            selectedFile = null;
+            showUploadForm = false;
+            successMessage = "Document uploaded successfully.";
+        }
+        catch (InvalidOperationException ex)
+        {
+            errorMessage = ex.Message;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            errorMessage = "You are not authorized to upload a document to that project.";
+        }
+        catch (Exception)
+        {
+            errorMessage = "The document could not be uploaded. Please try again.";
+        }
+        finally
+        {
+            isUploading = false;
+        }
+    }
+
+    private static string FormatFileSize(long bytes)
+    {
+        return bytes switch
+        {
+            >= 1024 * 1024 => $"{bytes / 1024d / 1024d:0.##} MB",
+            >= 1024 => $"{bytes / 1024d:0.##} KB",
+            _ => $"{bytes} bytes"
+        };
+    }
+}

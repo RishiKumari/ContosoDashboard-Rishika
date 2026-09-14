@@ -25,23 +25,23 @@ public class ProjectService : IProjectService
 
     public async Task<List<Project>> GetUserProjectsAsync(int userId)
     {
-        // Get projects where user is manager or a member
-        var managedProjects = _context.Projects
-            .Where(p => p.ProjectManagerId == userId);
+        var isAdministrator = await _context.Users
+            .AnyAsync(u => u.UserId == userId && u.Role == UserRole.Administrator);
 
-        var memberProjects = _context.Projects
-            .Where(p => p.ProjectMembers.Any(pm => pm.UserId == userId));
+        var query = _context.Projects.AsQueryable();
+        if (!isAdministrator)
+        {
+            query = query.Where(p => p.ProjectManagerId == userId ||
+                p.ProjectMembers.Any(pm => pm.UserId == userId));
+        }
 
-        var projects = await managedProjects
-            .Union(memberProjects)
+        return await query
             .Include(p => p.ProjectManager)
             .Include(p => p.Tasks)
             .Include(p => p.ProjectMembers)
             .ThenInclude(pm => pm.User)
             .OrderByDescending(p => p.CreatedDate)
             .ToListAsync();
-
-        return projects;
     }
 
     public async Task<Project?> GetProjectByIdAsync(int projectId, int requestingUserId)
@@ -56,11 +56,12 @@ public class ProjectService : IProjectService
 
         if (project == null) return null;
 
-        // Authorization: User must be project manager or a project member
-        var isProjectManager = project.ProjectManagerId == requestingUserId;
-        var isProjectMember = project.ProjectMembers.Any(pm => pm.UserId == requestingUserId);
+        var isAuthorized = await _context.Users
+            .AnyAsync(u => u.UserId == requestingUserId && u.Role == UserRole.Administrator) ||
+            project.ProjectManagerId == requestingUserId ||
+            project.ProjectMembers.Any(pm => pm.UserId == requestingUserId);
 
-        if (!isProjectManager && !isProjectMember)
+        if (!isAuthorized)
         {
             return null; // User not authorized to view this project
         }
@@ -84,8 +85,9 @@ public class ProjectService : IProjectService
         var existingProject = await _context.Projects.FindAsync(project.ProjectId);
         if (existingProject == null) return false;
 
-        // Authorization: Only project manager can update project
-        if (existingProject.ProjectManagerId != requestingUserId)
+        var canUpdate = existingProject.ProjectManagerId == requestingUserId ||
+            await _context.Users.AnyAsync(u => u.UserId == requestingUserId && u.Role == UserRole.Administrator);
+        if (!canUpdate)
         {
             return false; // User not authorized to update this project
         }
@@ -105,8 +107,9 @@ public class ProjectService : IProjectService
         var project = await _context.Projects.FindAsync(projectId);
         if (project == null) return false;
 
-        // Authorization: Only project manager can add members
-        if (project.ProjectManagerId != requestingUserId)
+        var canManageMembers = project.ProjectManagerId == requestingUserId ||
+            await _context.Users.AnyAsync(u => u.UserId == requestingUserId && u.Role == UserRole.Administrator);
+        if (!canManageMembers)
         {
             return false; // User not authorized to add members to this project
         }
@@ -138,11 +141,12 @@ public class ProjectService : IProjectService
 
         if (project == null) return new List<ProjectMember>();
 
-        // Authorization: User must be project manager or member
-        var isProjectManager = project.ProjectManagerId == requestingUserId;
-        var isProjectMember = project.ProjectMembers.Any(pm => pm.UserId == requestingUserId);
+        var isAuthorized = await _context.Users
+            .AnyAsync(u => u.UserId == requestingUserId && u.Role == UserRole.Administrator) ||
+            project.ProjectManagerId == requestingUserId ||
+            project.ProjectMembers.Any(pm => pm.UserId == requestingUserId);
 
-        if (!isProjectManager && !isProjectMember)
+        if (!isAuthorized)
         {
             return new List<ProjectMember>(); // User not authorized
         }
