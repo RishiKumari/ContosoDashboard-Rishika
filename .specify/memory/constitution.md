@@ -1,50 +1,54 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+- Version change: 0.0.0 -> 1.0.0
+- Modified principles: new constitution scaffold established for ContosoDashboard
+- Added sections: Security and Data Handling; Development Workflow
+- Removed sections: none
+- Deferred items: TODO(RATIFICATION_DATE): original adoption date not recorded in project history.
+-->
+
+# ContosoDashboard Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Learning-First and Safe-by-Default
+This project exists to teach secure application design, Spec-Driven Development, and clear engineering habits. Every feature must be understandable to a learner, explainable in plain language, and safe to demonstrate in a training environment. Production assumptions must be explicitly labeled as training-only when they are intentionally simplified.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Security and Authorization Must Be Enforced
+Authentication, authorization, and data access must be enforced at both the UI and service boundaries. Users must never be able to access data or actions outside their authorized scope through URL tampering, role confusion, or direct object references. Mock authentication is acceptable only for training and must remain clearly separated from production identity systems.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Spec-Driven Delivery Is Mandatory
+Any user-visible change or new capability must begin with a clear specification, acceptance criteria, and traceable implementation tasks. The team must not bypass planning with undocumented or ad hoc changes. This is required to keep the project teachable, measurable, and consistent with the Spec Kit workflow.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Test-First and Verifiable Change
+Behavioral changes must be verified with a failing test or equivalent reproducible check before implementation, followed by a passing validation after the fix. The project must not merge code that cannot be demonstrated to work through the relevant build or test command. This principle protects reliability and keeps the learning model grounded in evidence.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Simplicity, Separation of Concerns, and Maintainability
+The architecture must favor small, understandable components, explicit services, and clear boundaries between UI, business logic, and data access. Unnecessary abstractions, hidden side effects, and duplicated logic are prohibited unless they are justified by a documented requirement. The system must remain maintainable for training and review.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Security and Data Handling
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+The application must treat security as a product requirement, not as a later enhancement. Sensitive operations must use explicit authorization checks, role-based policies, and user-scoped data access. The system must avoid insecure defaults and must not assume that UI visibility alone provides protection.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+Data storage must be appropriate to the training context and platform constraints. When local persistence is used, it must be clearly documented and remain portable across developer environments. For this project, local SQLite is the approved default because it avoids dependency on SQL Server LocalDB and works reliably on ARM64 systems.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## Development Workflow
+
+All work must follow a repeatable process: define the problem, capture the requirement, plan the change, implement the change, validate the result, and document any assumptions. Pull requests and code review must confirm that the change still aligns with the constitution, the relevant spec, and the expected user value. Any temporary exceptions must be documented and reviewed rather than silently accepted.
+
+**Version**: 1.0.0 | **Ratified**: TODO(RATIFICATION_DATE): original adoption date not recorded in project history | **Last Amended**: 2026-09-14
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This Constitution governs all repository work for ContosoDashboard. It supersedes contradictory local practices, informal conventions, or undocumented assumptions when a conflict exists. Compliance is reviewed during planning, code review, and validation before a change is considered complete.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+Amendments require a written change to this constitution, a clear rationale for the change, and a review of the impact on the project principles and workflow. The amendment must identify the affected principle or section and explain whether the change adds, removes, or redefines governance requirements.
+
+Versioning follows semantic versioning rules:
+
+- MAJOR: backward-incompatible principle removals or redefinitions, or any governance rule that significantly changes required behavior
+- MINOR: addition of a new principle or section, or material expansion of guidance that changes expected practice
+- PATCH: clarification, wording, typo corrections, and non-semantic refinements
+
+All amended versions must record the change in the constitution and update the version metadata. If the project changes materially, the governance team must review whether new principles, workflow controls, or security requirements are required before the next implementation cycle begins.
+
